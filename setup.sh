@@ -1,12 +1,21 @@
-sudo apt update
+echo Preparando......
+sudo mkdir /home/downloads
+cd /home/downloads
+sudo chmod -R 777 /home/downloads
 
-# Install Apache + PHP
-sudo apt install apache2 -y
-sudo apt install php7.4-cli libapache2-mod-php7.4 php7.4-mysql php7.4-curl php-memcached php7.4-dev php7.4-sqlite3 php7.4-mbstring php7.4-gd php7.4-json -y
-sudo apt install unzip -y
+echo Git
+sudo apt install git -y
+
+echo Apache
+sudo apt-get install apache2 -y
+
+echo PHP
+sudo apt install php7.4-cli libapache2-mod-php7.4 php7.4-mysql php7.4-curl php-memcached php7.4-dev php7.4-sqlite3 php7.4-mbstring php7.4-gd php7.4-js -y
+sudo apt install php-soap
+
+echo Composer
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 
-
-# Install MySQL
-sudo apt install mysql-server
+echo Limpando...
+sudo apt autoremove
