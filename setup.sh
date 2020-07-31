@@ -11,7 +11,7 @@ sudo apt-get install apache2 -y
 
 echo PHP
 sudo apt install php7.4-cli libapache2-mod-php7.4 php7.4-mysql php7.4-curl php-memcached php7.4-dev php7.4-sqlite3 php7.4-mbstring php7.4-gd php7.4-js -y
-sudo apt install php-soap
+sudo apt install php-soap -y
 
 echo Composer
 curl -sS https://getcomposer.org/installer | php
