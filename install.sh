@@ -84,6 +84,12 @@ if [ -x "/usr/bin/fdfind" ] && [ ! -e "$LOCAL_BIN/fd" ]; then
     echo "Symlink 'fd -> /usr/bin/fdfind' criado."
 fi
 
+# Instalar dependências de IA no venv se existir uv
+if command -v uv >/dev/null 2>&1 && [ -d "$USER_HOME/.venvs/global-ai" ]; then
+    echo "Garantindo dependências do JARVIS (openwakeword, faster-whisper, edge-tts)..."
+    uv pip install --python "$USER_HOME/.venvs/global-ai/bin/python" openwakeword faster-whisper edge-tts >/dev/null 2>&1 || true
+fi
+
 # 4. Configurações de Aplicativos e Arquivos de Configuração
 echo ""
 echo "[4/7] Aplicando configurações em $CONFIG_DIR..."
