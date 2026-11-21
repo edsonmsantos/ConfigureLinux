@@ -103,6 +103,7 @@ Esta receita resolve tudo isso de forma **100% não-destrutiva**: padroniza apli
 | Atalho | Ação / Utilitário | Descrição |
 |---|---|---|
 | **`Super + H`** | **Hub de Ferramentas** | Catálogo pesquisável com tags, atalhos e execução direta |
+| **`Super + J`** | **J.A.R.V.I.S. HUD** | Assistente neural holográfico com telemetria e controle por voz |
 | **`Super + E`** | **Este Computador** | Painel de discos com barras de uso, pastas e arquivos recentes |
 | **`Super + A`** ou **`F4`** | **Launchpad** | Gaveta de aplicativos em tela cheia semitransparente |
 | **`Super + V`** | **Histórico de Clipboard** | Menu no cursor com últimos 50 textos e 10 imagens (com auto-paste) |

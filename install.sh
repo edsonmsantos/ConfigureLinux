@@ -147,6 +147,10 @@ set_shortcut() {
 set_shortcut "<Super>h" "$LOCAL_BIN/hub-ferramentas"
 set_shortcut "<Super>H" "$LOCAL_BIN/hub-ferramentas"
 
+# J.A.R.V.I.S. HUD (Super + J)
+set_shortcut "<Super>j" "$LOCAL_BIN/jarvis"
+set_shortcut "<Super>J" "$LOCAL_BIN/jarvis"
+
 # Este Computador (Super + E)
 set_shortcut "<Super>e" "$LOCAL_BIN/meu-computador"
 

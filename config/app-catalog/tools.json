@@ -1,5 +1,26 @@
 [
     {
+        "name": "J.A.R.V.I.S. HUD",
+        "cmd": "jarvis",
+        "shortcut": "Super + J",
+        "category": "Produtividade",
+        "tags": [
+            "jarvis",
+            "ia",
+            "assistente",
+            "voz",
+            "hud",
+            "homem-de-ferro",
+            "telemetria",
+            "stt",
+            "tts",
+            "lfm3",
+            "agy"
+        ],
+        "desc": "Assistente neural holográfico com reconhecimento de voz contínuo, telemetria em tempo real e ações no sistema.",
+        "icon": "/home/edson/Documentos/Projetos/jarvis-hud/jarvis-icon.svg"
+    },
+    {
         "name": "Hub de Ferramentas & Atalhos",
         "cmd": "hub-ferramentas",
         "shortcut": "Super + H",
