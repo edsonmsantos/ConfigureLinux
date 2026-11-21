@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=J.A.R.V.I.S. Dynamic Island
+Comment=Assistente neural holográfico flutuante onipresente
+Exec=/home/edson/.local/bin/jarvis
+Icon=/home/edson/Documentos/Projetos/jarvis-hud/jarvis-icon.svg
+Terminal=false
+Categories=Utility;AudioVideo;ArtificialIntelligence;
+StartupNotify=false
