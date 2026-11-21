@@ -147,9 +147,11 @@ set_shortcut() {
 set_shortcut "<Super>h" "$LOCAL_BIN/hub-ferramentas"
 set_shortcut "<Super>H" "$LOCAL_BIN/hub-ferramentas"
 
-# J.A.R.V.I.S. HUD (Super + J)
+# J.A.R.V.I.S. HUD (Super + J e Ctrl + J)
 set_shortcut "<Super>j" "$LOCAL_BIN/jarvis"
 set_shortcut "<Super>J" "$LOCAL_BIN/jarvis"
+set_shortcut "<Primary>j" "$LOCAL_BIN/jarvis"
+set_shortcut "<Primary>J" "$LOCAL_BIN/jarvis"
 
 # Este Computador (Super + E)
 set_shortcut "<Super>e" "$LOCAL_BIN/meu-computador"
@@ -195,6 +197,14 @@ echo ""
 echo "[7/7] Inicializando daemons e recarregando o gerenciador de arquivos..."
 # Reiniciar Thunar para aplicar atalhos e uca.xml
 thunar -q 2>/dev/null || true
+
+# Configurar e ativar serviço systemd do JARVIS
+if [ -f "$SCRIPT_DIR/systemd/jarvis.service" ]; then
+    mkdir -p "$USER_HOME/.config/systemd/user"
+    cp -f "$SCRIPT_DIR/systemd/jarvis.service" "$USER_HOME/.config/systemd/user/jarvis.service"
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user enable --now jarvis.service 2>/dev/null || true
+fi
 
 # Iniciar xfdashboard daemon se não estiver rodando
 if ! pgrep -f "xfdashboard -d" >/dev/null; then

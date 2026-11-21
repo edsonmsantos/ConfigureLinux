@@ -1,0 +1,13 @@
+[Unit]
+Description=J.A.R.V.I.S. Neural HUD Dynamic Island Daemon
+After=graphical-session.target network.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:0
+ExecStart=/home/edson/.local/bin/jarvis
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
