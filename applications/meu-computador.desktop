@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Este Computador
+Comment=Pastas Pessoais e Unidades de Armazenamento
+Exec=/home/edson/.local/bin/meu-computador
+Icon=computer
+Terminal=false
+Categories=System;Utility;Core;
+StartupNotify=true

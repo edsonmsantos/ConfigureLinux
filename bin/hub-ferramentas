@@ -1,0 +1,483 @@
+#!/usr/bin/python3
+import sys, os, json, subprocess
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, Pango, GLib
+
+CONFIG_PATH = os.path.expanduser('~/.config/app-catalog/tools.json')
+
+CSS = b"""
+window {
+    background-color: #1e222b;
+    color: #abb2bf;
+}
+.hub-search {
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: #282c34;
+    color: #abb2bf;
+    border: 1px solid #3e4451;
+}
+.hub-search:focus {
+    border-color: #61afef;
+    background-color: #21252b;
+}
+.tool-card {
+    background-color: #252936;
+    border: 1px solid #333a4d;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    transition: all 150ms ease;
+}
+.tool-card:hover {
+    background-color: #2b3142;
+    border-color: #4d5770;
+}
+.cat-pill {
+    background-color: #323849;
+    color: #98c379;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+.shortcut-pill {
+    background-color: #21252b;
+    color: #61afef;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #3b4252;
+}
+.tag-text {
+    color: #e5c07b;
+    font-size: 11px;
+}
+.cat-btn {
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 12px;
+    background-color: #282c34;
+    border: 1px solid #3e4451;
+    color: #abb2bf;
+}
+.cat-btn:checked {
+    background-color: #61afef;
+    color: #1e222b;
+    font-weight: bold;
+    border-color: #61afef;
+}
+"""
+
+def esc(text):
+    if not text:
+        return ""
+    return GLib.markup_escape_text(str(text))
+
+class AddToolDialog(Gtk.Dialog):
+    def __init__(self, parent, existing_categories):
+        super().__init__(title="Nova Ferramenta", transient_for=parent, flags=0)
+        self.set_default_size(520, 480)
+        self.set_modal(True)
+        
+        box = self.get_content_area()
+        box.set_spacing(10)
+        box.set_margin_start(20)
+        box.set_margin_end(20)
+        box.set_margin_top(16)
+        box.set_margin_bottom(16)
+        
+        grid = Gtk.Grid()
+        grid.set_column_spacing(12)
+        grid.set_row_spacing(10)
+        box.add(grid)
+        
+        # Nome
+        grid.attach(Gtk.Label(label="Nome:", xalign=0), 0, 0, 1, 1)
+        self.entry_name = Gtk.Entry(placeholder_text="Ex: Minha Ferramenta")
+        self.entry_name.set_hexpand(True)
+        grid.attach(self.entry_name, 1, 0, 1, 1)
+        
+        # Comando
+        grid.attach(Gtk.Label(label="Comando:", xalign=0), 0, 1, 1, 1)
+        self.entry_cmd = Gtk.Entry(placeholder_text="Ex: minhatool --flag ou /caminho/script.sh")
+        grid.attach(self.entry_cmd, 1, 1, 1, 1)
+        
+        # Categoria
+        grid.attach(Gtk.Label(label="Categoria:", xalign=0), 0, 2, 1, 1)
+        self.combo_cat = Gtk.ComboBoxText.new_with_entry()
+        for cat in existing_categories:
+            if cat != "Todos":
+                self.combo_cat.append_text(cat)
+        self.combo_cat.get_child().set_placeholder_text("Produtividade, Arquivos, Sistema...")
+        grid.attach(self.combo_cat, 1, 2, 1, 1)
+        
+        # Atalho
+        grid.attach(Gtk.Label(label="Atalho:", xalign=0), 0, 3, 1, 1)
+        self.entry_shortcut = Gtk.Entry(placeholder_text="Ex: Super + K ou Ctrl + Shift + P")
+        grid.attach(self.entry_shortcut, 1, 3, 1, 1)
+        
+        # Ícone
+        grid.attach(Gtk.Label(label="Ícone (opcional):", xalign=0), 0, 4, 1, 1)
+        self.entry_icon = Gtk.Entry(placeholder_text="system-run, accessories-calculator, etc.")
+        self.entry_icon.set_text("system-run")
+        grid.attach(self.entry_icon, 1, 4, 1, 1)
+        
+        # Descrição
+        grid.attach(Gtk.Label(label="Descrição:", xalign=0, yalign=0), 0, 5, 1, 1)
+        self.entry_desc = Gtk.TextView()
+        self.entry_desc.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.entry_desc.set_size_request(-1, 70)
+        frame_desc = Gtk.Frame()
+        frame_desc.add(self.entry_desc)
+        grid.attach(frame_desc, 1, 5, 1, 1)
+        
+        # Tags
+        grid.attach(Gtk.Label(label="Tags:", xalign=0), 0, 6, 1, 1)
+        self.entry_tags = Gtk.Entry(placeholder_text="Separadas por vírgula (ex: busca, rede, rápido)")
+        grid.attach(self.entry_tags, 1, 6, 1, 1)
+        
+        self.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+        btn_save = self.add_button("Salvar Ferramenta", Gtk.ResponseType.OK)
+        btn_save.get_style_context().add_class("suggested-action")
+        self.show_all()
+        
+    def get_data(self):
+        buf = self.entry_desc.get_buffer()
+        desc = buf.get_text(buf.get_start_iter(), buf.get_end_iter(), True).strip()
+        cat = self.combo_cat.get_active_text() or "Geral"
+        tags_raw = self.entry_tags.get_text().split(",")
+        tags = [t.strip().lower() for t in tags_raw if t.strip()]
+        
+        return {
+            "name": self.entry_name.get_text().strip(),
+            "cmd": self.entry_cmd.get_text().strip(),
+            "category": cat.strip(),
+            "shortcut": self.entry_shortcut.get_text().strip(),
+            "icon": self.entry_icon.get_text().strip() or "system-run",
+            "desc": desc,
+            "tags": tags
+        }
+
+
+class ToolHubWindow(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="Hub de Ferramentas")
+        self.set_default_size(960, 720)
+        self.set_position(Gtk.WindowPosition.CENTER)
+        
+        # Aplicar CSS Customizado
+        screen = Gdk.Screen.get_default()
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS)
+        Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        
+        # Forçar tema escuro
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-application-prefer-dark-theme", True)
+        
+        # HeaderBar
+        header = Gtk.HeaderBar()
+        header.set_show_close_button(True)
+        header.set_title("Hub de Ferramentas & Atalhos")
+        header.set_subtitle("Catálogo pesquisável do sistema")
+        
+        # Botão + Nova Ferramenta
+        btn_add = Gtk.Button(label="+ Nova Ferramenta")
+        btn_add.get_style_context().add_class("suggested-action")
+        btn_add.set_tooltip_text("Adicionar nova ferramenta ou comando ao catálogo (Ctrl+N)")
+        btn_add.connect("clicked", self.on_add_tool_clicked)
+        header.pack_start(btn_add)
+        
+        # Botão editar JSON
+        btn_edit = Gtk.Button(label="Editar JSON")
+        btn_edit.set_tooltip_text(f"Abrir {CONFIG_PATH} no editor de código")
+        btn_edit.connect("clicked", self.open_json_editor)
+        header.pack_end(btn_edit)
+        
+        # Botão recarregar
+        btn_reload = Gtk.Button()
+        img_reload = Gtk.Image.new_from_icon_name("view-refresh", Gtk.IconSize.BUTTON)
+        btn_reload.set_image(img_reload)
+        btn_reload.set_tooltip_text("Recarregar dados (F5)")
+        btn_reload.connect("clicked", lambda b: self.load_tools())
+        header.pack_end(btn_reload)
+        
+        self.set_titlebar(header)
+        
+        # Container principal
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        main_box.set_margin_start(20)
+        main_box.set_margin_end(20)
+        main_box.set_margin_top(16)
+        main_box.set_margin_bottom(16)
+        self.add(main_box)
+        
+        # Barra de Pesquisa
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.get_style_context().add_class("hub-search")
+        self.search_entry.set_placeholder_text("🔍 Pesquise por utilidade, nome, tags, atalhos ou comandos (ex: traduzir, discos, ocr, buscar, preview, rede, gpu)...")
+        self.search_entry.set_hexpand(True)
+        self.search_entry.connect("search-changed", lambda e: self.filter_tools())
+        main_box.pack_start(self.search_entry, False, False, 0)
+        
+        # Container dinâmico de Categorias (Chips)
+        self.cat_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        main_box.pack_start(self.cat_box, False, False, 0)
+        
+        # Barra de Status / Contagem
+        status_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.lbl_count = Gtk.Label(label="", xalign=0)
+        self.lbl_count.get_style_context().add_class("dim-label")
+        status_box.pack_start(self.lbl_count, True, True, 0)
+        
+        lbl_hint = Gtk.Label(label="<small><span foreground='#5c6370'>Esc: Limpar/Sair | F5: Recarregar | Ctrl+N: Adicionar</span></small>", use_markup=True)
+        status_box.pack_end(lbl_hint, False, False, 0)
+        main_box.pack_start(status_box, False, False, 0)
+        
+        # Lista com Scroll
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        main_box.pack_start(scrolled, True, True, 0)
+        
+        self.listbox = Gtk.ListBox()
+        self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        scrolled.add(self.listbox)
+        
+        self.connect("key-press-event", self.on_key_press)
+        self.connect("destroy", Gtk.main_quit)
+        
+        self.tools = []
+        self.active_category = "Todos"
+        self.categories = ["Todos"]
+        self.load_tools()
+        
+    def open_json_editor(self, widget):
+        subprocess.Popen(["xdg-open", CONFIG_PATH])
+        
+    def on_add_tool_clicked(self, widget):
+        dialog = AddToolDialog(self, self.categories)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            data = dialog.get_data()
+            if data["name"] and data["cmd"]:
+                self.tools.insert(0, data)
+                self.save_tools_to_disk()
+                self.load_tools()
+        dialog.destroy()
+        
+    def save_tools_to_disk(self):
+        try:
+            os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+            with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
+                json.dump(self.tools, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            dialog = Gtk.MessageDialog(
+                transient_for=self,
+                flags=0,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                text=f"Erro ao salvar arquivo: {e}"
+            )
+            dialog.run()
+            dialog.destroy()
+            
+    def on_key_press(self, widget, event):
+        if event.keyval in (Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q):
+            if self.search_entry.get_text():
+                self.search_entry.set_text("")
+                return True
+            else:
+                Gtk.main_quit()
+                return True
+        elif event.keyval == Gdk.KEY_F5:
+            self.load_tools()
+            return True
+        elif (event.state & Gdk.ModifierType.CONTROL_MASK) and event.keyval in (Gdk.KEY_n, Gdk.KEY_N):
+            self.on_add_tool_clicked(None)
+            return True
+        return False
+        
+    def rebuild_categories(self):
+        for child in self.cat_box.get_children():
+            self.cat_box.remove(child)
+            
+        cats = set()
+        for t in self.tools:
+            c = t.get("category", "").strip()
+            if c:
+                cats.add(c)
+        self.categories = ["Todos"] + sorted(list(cats))
+        
+        group = None
+        for cat in self.categories:
+            btn_cat = Gtk.RadioButton(label=cat)
+            btn_cat.get_style_context().add_class("cat-btn")
+            btn_cat.set_property("draw-indicator", False)
+            btn_cat.set_relief(Gtk.ReliefStyle.NORMAL)
+            if group is None:
+                group = btn_cat
+                btn_cat.set_active(True)
+            else:
+                btn_cat.join_group(group)
+                if cat == self.active_category:
+                    btn_cat.set_active(True)
+            btn_cat.connect("toggled", self.on_category_toggled, cat)
+            self.cat_box.pack_start(btn_cat, False, False, 0)
+            
+        self.cat_box.show_all()
+        
+    def on_category_toggled(self, button, category):
+        if button.get_active():
+            self.active_category = category
+            self.filter_tools()
+            
+    def load_tools(self):
+        if os.path.exists(CONFIG_PATH):
+            try:
+                with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                    self.tools = json.load(f)
+            except Exception as e:
+                self.tools = []
+        else:
+            self.tools = []
+        self.rebuild_categories()
+        self.filter_tools()
+        
+    def filter_tools(self):
+        query = self.search_entry.get_text().strip().lower()
+        
+        for child in self.listbox.get_children():
+            self.listbox.remove(child)
+            
+        matched = []
+        for t in self.tools:
+            # Filtro por categoria
+            if self.active_category != "Todos" and t.get("category", "") != self.active_category:
+                continue
+                
+            # Filtro por texto
+            if query:
+                text_to_search = " ".join([
+                    t.get("name", ""),
+                    t.get("desc", ""),
+                    t.get("shortcut", ""),
+                    t.get("category", ""),
+                    t.get("cmd", ""),
+                    " ".join(t.get("tags", []))
+                ]).lower()
+                
+                terms = query.split()
+                if not all(term in text_to_search for term in terms):
+                    continue
+                    
+            matched.append(t)
+            
+        self.lbl_count.set_markup(f"<small>Mostrando <b>{len(matched)}</b> de {len(self.tools)} ferramentas</small>")
+        
+        for t in matched:
+            self.add_tool_card(t)
+            
+        self.listbox.show_all()
+        
+    def add_tool_card(self, tool):
+        row = Gtk.ListBoxRow()
+        row.set_margin_bottom(6)
+        
+        card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        card.get_style_context().add_class("tool-card")
+        
+        # Ícone do aplicativo
+        icon_name = tool.get("icon", "system-run")
+        img = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DIALOG)
+        img.set_pixel_size(44)
+        card.pack_start(img, False, False, 0)
+        
+        # Conteúdo do meio
+        info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        
+        # Linha 1: Título + Badge Categoria + Badge Atalho
+        title_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        
+        lbl_name = Gtk.Label(label=f"<b><span font='13'>{esc(tool.get('name', 'Sem nome'))}</span></b>", use_markup=True, xalign=0)
+        lbl_name.set_ellipsize(Pango.EllipsizeMode.END)
+        title_row.pack_start(lbl_name, False, False, 0)
+        
+        # Categoria pill (usando widget StyleContext ao invés de span class)
+        cat_name = tool.get("category", "Geral")
+        lbl_cat = Gtk.Label(label=f" {cat_name} ")
+        lbl_cat.get_style_context().add_class("cat-pill")
+        title_row.pack_start(lbl_cat, False, False, 0)
+        
+        # Atalho em destaque
+        shortcut = tool.get("shortcut", "")
+        if shortcut:
+            lbl_short = Gtk.Label(label=f" ⚡ {shortcut} ")
+            lbl_short.get_style_context().add_class("shortcut-pill")
+            title_row.pack_start(lbl_short, False, False, 0)
+            
+        info_box.pack_start(title_row, False, False, 0)
+        
+        # Linha 2: Descrição humana
+        desc = tool.get("desc", "")
+        lbl_desc = Gtk.Label(label=desc, xalign=0, wrap=True)
+        lbl_desc.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        info_box.pack_start(lbl_desc, False, False, 0)
+        
+        # Linha 3: Tags
+        tags = tool.get("tags", [])
+        if tags:
+            tag_str = "  ".join([f"#{tg}" for tg in tags])
+            lbl_tags = Gtk.Label(label=tag_str, xalign=0)
+            lbl_tags.get_style_context().add_class("tag-text")
+            info_box.pack_start(lbl_tags, False, False, 0)
+            
+        card.pack_start(info_box, True, True, 0)
+        
+        # Botões de Ação na Direita
+        btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        btn_box.set_valign(Gtk.Align.CENTER)
+        
+        cmd = tool.get("cmd", "")
+        if cmd:
+            btn_run = Gtk.Button(label="Abrir / Executar")
+            btn_run.get_style_context().add_class("suggested-action")
+            btn_run.connect("clicked", lambda b, c=cmd: self.run_command(c))
+            btn_box.pack_start(btn_run, False, False, 0)
+            
+            btn_copy = Gtk.Button(label="Copiar Comando")
+            btn_copy.set_tooltip_text(f"Comando: {cmd}")
+            btn_copy.connect("clicked", lambda b, c=cmd: self.copy_to_clipboard(c))
+            btn_box.pack_start(btn_copy, False, False, 0)
+            
+        card.pack_start(btn_box, False, False, 0)
+        
+        row.add(card)
+        self.listbox.add(row)
+        
+    def run_command(self, cmd):
+        try:
+            subprocess.Popen(cmd, shell=True)
+        except Exception as e:
+            dialog = Gtk.MessageDialog(
+                transient_for=self,
+                flags=0,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                text=f"Erro ao executar comando: {e}"
+            )
+            dialog.run()
+            dialog.destroy()
+            
+    def copy_to_clipboard(self, text):
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(text, -1)
+        clipboard.store()
+
+if __name__ == '__main__':
+    app = ToolHubWindow()
+    app.show_all()
+    Gtk.main()

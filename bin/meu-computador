@@ -1,0 +1,276 @@
+#!/usr/bin/python3
+import sys, os, subprocess, time
+from datetime import datetime
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, Pango, Gio, GLib
+
+class ThisPCWindow(Gtk.Window):
+    def __init__(self):
+        super().__init__(title="Este Computador")
+        self.set_default_size(860, 680)
+        self.set_position(Gtk.WindowPosition.CENTER)
+        
+        # Tema escuro
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-application-prefer-dark-theme", True)
+        
+        header = Gtk.HeaderBar()
+        header.set_show_close_button(True)
+        header.set_title("Este Computador")
+        header.set_subtitle("Discos, Pastas e Arquivos Recentes")
+        
+        btn_refresh = Gtk.Button()
+        img_refresh = Gtk.Image.new_from_icon_name("view-refresh", Gtk.IconSize.BUTTON)
+        btn_refresh.set_image(img_refresh)
+        btn_refresh.set_tooltip_text("Atualizar informações (F5)")
+        btn_refresh.connect("clicked", lambda b: self.refresh_content())
+        header.pack_end(btn_refresh)
+        
+        self.set_titlebar(header)
+        
+        self.scrolled = Gtk.ScrolledWindow()
+        self.scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self.add(self.scrolled)
+        
+        self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        self.main_box.set_margin_start(24)
+        self.main_box.set_margin_end(24)
+        self.main_box.set_margin_top(20)
+        self.main_box.set_margin_bottom(20)
+        self.scrolled.add(self.main_box)
+        
+        self.connect("key-press-event", self.on_key_press)
+        self.connect("destroy", Gtk.main_quit)
+        
+        self.build_ui()
+        
+    def refresh_content(self):
+        for child in self.main_box.get_children():
+            self.main_box.remove(child)
+        self.build_ui()
+        self.main_box.show_all()
+        
+    def on_key_press(self, widget, event):
+        if event.keyval in (Gdk.KEY_Escape, Gdk.KEY_q, Gdk.KEY_Q):
+            Gtk.main_quit()
+            return True
+        elif event.keyval == Gdk.KEY_F5:
+            self.refresh_content()
+            return True
+        return False
+
+    def build_ui(self):
+        # ==========================================
+        # 1. DISPOSITIVOS E UNIDADES (EM COLUNAS)
+        # ==========================================
+        lbl_drives = Gtk.Label(label="<b>Dispositivos e Unidades</b>", use_markup=True, xalign=0)
+        self.main_box.pack_start(lbl_drives, False, False, 0)
+        
+        drives_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        drives_box.set_homogeneous(True)
+        
+        drive_configs = [
+            ("Disco Local (Sistema /)", "drive-harddisk-system", "/"),
+            ("Disco de Dados (NVMe)", "drive-harddisk-solidstate", "/mnt/nvme")
+        ]
+        
+        for base in ["/media/edson", "/run/media/edson"]:
+            if os.path.exists(base):
+                for sub in os.listdir(base):
+                    full_p = os.path.join(base, sub)
+                    if os.path.ismount(full_p) and full_p not in [d[2] for d in drive_configs]:
+                        drive_configs.append((f"Removível ({sub})", "drive-removable-media", full_p))
+                        
+        for name, icon, path in drive_configs:
+            if not os.path.exists(path):
+                continue
+            try:
+                st = os.statvfs(path)
+                total = (st.f_blocks * st.f_frsize) / (1024**3)
+                free = (st.f_bavail * st.f_frsize) / (1024**3)
+                used = total - free
+                pct = (used / total) if total > 0 else 0
+            except Exception:
+                continue
+                
+            btn = Gtk.Button()
+            btn.set_relief(Gtk.ReliefStyle.NORMAL)
+            
+            # Card em coluna (vertical)
+            card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            card.set_margin_start(14)
+            card.set_margin_end(14)
+            card.set_margin_top(12)
+            card.set_margin_bottom(12)
+            
+            top_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            img = Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.DIALOG)
+            lbl_title = Gtk.Label(label=f"<b>{name}</b>", use_markup=True, xalign=0, ellipsize=Pango.EllipsizeMode.END)
+            top_row.pack_start(img, False, False, 0)
+            top_row.pack_start(lbl_title, True, True, 0)
+            card.pack_start(top_row, False, False, 0)
+            
+            pbar = Gtk.ProgressBar()
+            pbar.set_fraction(pct)
+            if pct > 0.90:
+                css = b"progressbar progress { background-color: #e05252; }"
+                style_provider = Gtk.CssProvider()
+                style_provider.load_from_data(css)
+                pbar.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            card.pack_start(pbar, False, False, 0)
+            
+            lbl_stat = Gtk.Label(
+                label=f"<small>{free:.1f} GB livres de {total:.1f} GB ({pct*100:.0f}% em uso)</small>",
+                use_markup=True,
+                xalign=0
+            )
+            card.pack_start(lbl_stat, False, False, 0)
+            
+            btn.add(card)
+            btn.set_tooltip_text(f"Abrir {path} no Thunar")
+            btn.connect("clicked", lambda b, p=path: subprocess.Popen(["thunar", p]))
+            drives_box.pack_start(btn, True, True, 0)
+            
+        self.main_box.pack_start(drives_box, False, False, 0)
+        
+        self.main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 6)
+        
+        # ==========================================
+        # 2. PASTAS PESSOAIS (ABAIXO DOS DISCOS)
+        # ==========================================
+        lbl_folders = Gtk.Label(label="<b>Pastas Pessoais</b>", use_markup=True, xalign=0)
+        self.main_box.pack_start(lbl_folders, False, False, 0)
+        
+        folders_flow = Gtk.FlowBox()
+        folders_flow.set_valign(Gtk.Align.START)
+        folders_flow.set_max_children_per_line(6)
+        folders_flow.set_selection_mode(Gtk.SelectionMode.NONE)
+        
+        user_home = os.path.expanduser("~")
+        std_folders = [
+            ("Área de Trabalho", "user-desktop", os.path.join(user_home, "Desktop")),
+            ("Documentos", "folder-documents", os.path.join(user_home, "Documents")),
+            ("Downloads", "folder-download", os.path.join(user_home, "Downloads")),
+            ("Imagens", "folder-pictures", os.path.join(user_home, "Pictures")),
+            ("Vídeos", "folder-videos", os.path.join(user_home, "Videos")),
+            ("Músicas", "folder-music", os.path.join(user_home, "Music"))
+        ]
+        
+        for name, icon, path in std_folders:
+            if not os.path.exists(path):
+                alt_name = {
+                    "Documents": "Documentos",
+                    "Pictures": "Imagens",
+                    "Videos": "Vídeos",
+                    "Desktop": "Área de Trabalho",
+                    "Music": "Músicas"
+                }.get(os.path.basename(path), "")
+                alt_path = os.path.join(user_home, alt_name)
+                if os.path.exists(alt_path):
+                    path = alt_path
+            
+            btn = Gtk.Button()
+            btn.set_relief(Gtk.ReliefStyle.NONE)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            box.set_size_request(110, 75)
+            img = Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.DND)
+            lbl = Gtk.Label(label=name, ellipsize=Pango.EllipsizeMode.END)
+            box.pack_start(img, True, True, 0)
+            box.pack_start(lbl, False, False, 0)
+            btn.add(box)
+            btn.set_tooltip_text(path)
+            btn.connect("clicked", lambda b, p=path: subprocess.Popen(["thunar", p]))
+            folders_flow.add(btn)
+            
+        self.main_box.pack_start(folders_flow, False, False, 0)
+        
+        self.main_box.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 6)
+        
+        # ==========================================
+        # 3. ÚLTIMOS ARQUIVOS E PASTAS (LISTA)
+        # ==========================================
+        lbl_recent = Gtk.Label(label="<b>Arquivos e Pastas Recentes</b>", use_markup=True, xalign=0)
+        self.main_box.pack_start(lbl_recent, False, False, 0)
+        
+        recent_frame = Gtk.Frame()
+        recent_frame.set_shadow_type(Gtk.ShadowType.IN)
+        listbox = Gtk.ListBox()
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        recent_frame.add(listbox)
+        
+        rm = Gtk.RecentManager.get_default()
+        items = rm.get_items()
+        
+        # Ordenar por data de modificação recente
+        valid_items = [it for it in items if it.exists()]
+        valid_items.sort(key=lambda x: x.get_modified(), reverse=True)
+        
+        count = 0
+        for it in valid_items:
+            uri = it.get_uri_display()
+            if not uri.startswith("/"):
+                continue
+                
+            count += 1
+            if count > 10:
+                break
+                
+            row = Gtk.ListBoxRow()
+            row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            row_box.set_margin_start(12)
+            row_box.set_margin_end(12)
+            row_box.set_margin_top(8)
+            row_box.set_margin_bottom(8)
+            
+            # Ícone do tipo de arquivo
+            is_dir = os.path.isdir(uri)
+            if is_dir:
+                icon_name = "folder"
+            else:
+                mime = it.get_mime_type() or "text-plain"
+                icon_g = Gio.content_type_get_icon(mime)
+                icon_name = "text-x-generic"
+                if icon_g and hasattr(icon_g, 'get_names'):
+                    names = icon_g.get_names()
+                    if names:
+                        icon_name = names[0]
+                        
+            img = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+            row_box.pack_start(img, False, False, 0)
+            
+            name_lbl = Gtk.Label(label=it.get_display_name(), xalign=0)
+            name_lbl.set_ellipsize(Pango.EllipsizeMode.END)
+            row_box.pack_start(name_lbl, True, True, 0)
+            
+            # Caminho resumido
+            dir_path = os.path.dirname(uri).replace(user_home, "~")
+            path_lbl = Gtk.Label(label=f"<small>{dir_path}</small>", use_markup=True, xalign=1)
+            path_lbl.get_style_context().add_class("dim-label")
+            row_box.pack_end(path_lbl, False, False, 0)
+            
+            # Botão invisível para abrir
+            row.add(row_box)
+            
+            # Ao clicar na linha, abre o arquivo ou pasta
+            def open_item(r, p=uri, d=is_dir):
+                if d:
+                    subprocess.Popen(["thunar", p])
+                else:
+                    subprocess.Popen(["xdg-open", p])
+            row.connect("activate", open_item)
+            listbox.add(row)
+            
+        if count == 0:
+            empty_lbl = Gtk.Label(label="<small>Nenhum arquivo recente registrado ainda.</small>", use_markup=True)
+            empty_lbl.set_margin_top(16)
+            empty_lbl.set_margin_bottom(16)
+            listbox.add(empty_lbl)
+            
+        listbox.set_activate_on_single_click(True)
+        self.main_box.pack_start(recent_frame, False, False, 0)
+
+if __name__ == '__main__':
+    app = ThisPCWindow()
+    app.show_all()
+    Gtk.main()

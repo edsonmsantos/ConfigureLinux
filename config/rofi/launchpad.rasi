@@ -1,0 +1,77 @@
+configuration {
+    show-icons: true;
+    display-drun: "🔍";
+    drun-display-format: "{name}";
+    font: "Ubuntu 11";
+}
+
+* {
+    background-color: transparent;
+    text-color: #ffffff;
+}
+
+window {
+    transparency: "real";
+    background-color: #0f111ae6;
+    fullscreen: true;
+    padding: 60px 100px;
+    children: [ mainbox ];
+}
+
+mainbox {
+    spacing: 30px;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    background-color: #ffffff14;
+    border-radius: 24px;
+    padding: 12px 24px;
+    margin: 0px 25% 10px 25%;
+    children: [ prompt, entry ];
+    spacing: 12px;
+}
+
+prompt {
+    text-color: #ffffff99;
+}
+
+entry {
+    text-color: #ffffff;
+    placeholder: "Buscar aplicativo...";
+    placeholder-color: #ffffff66;
+}
+
+listview {
+    columns: 6;
+    lines: 4;
+    cycle: true;
+    dynamic: true;
+    spacing: 24px;
+    scrollbar: false;
+}
+
+element {
+    border-radius: 18px;
+    padding: 22px 10px;
+    orientation: vertical;
+    spacing: 12px;
+    cursor: pointer;
+}
+
+element selected {
+    background-color: #ffffff1c;
+    border-color: #ffffff33;
+    border: 1px;
+}
+
+element-icon {
+    size: 64px;
+    horizontal-align: 0.5;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    text-color: #ffffff;
+    font: "Ubuntu 11";
+}

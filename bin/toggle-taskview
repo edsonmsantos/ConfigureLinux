@@ -1,0 +1,6 @@
+#!/bin/bash
+if ! pgrep -x xfdashboard > /dev/null; then
+    xfdashboard -d
+    sleep 0.3
+fi
+xfdashboard -t

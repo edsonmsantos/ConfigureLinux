@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Traduzir no Google Imagens
+Comment=Envia o print para o Google Tradutor Imagens
+Exec=/home/edson/.local/bin/flameshot-translate %f
+Icon=google-chrome
+Terminal=false
+Categories=Graphics;Utility;
+MimeType=image/png;image/jpeg;
+NoDisplay=false

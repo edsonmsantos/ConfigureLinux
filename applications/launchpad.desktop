@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Launchpad
+Comment=Lançador de Aplicativos em Tela Cheia Estilo macOS
+Exec=/home/edson/.local/bin/launchpad
+Icon=view-app-grid
+Terminal=false
+Categories=System;Utility;
+StartupNotify=false

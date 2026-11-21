@@ -1,0 +1,29 @@
+# Ghostty - Configuração Elegante e Mac-like
+
+# Tema Visual (Escuro e com alto contraste, excelente legibilidade)
+theme = TokyoNight
+window-theme = dark
+
+# Tipografia
+font-family = Hack
+font-size = 12.5
+
+# Espaçamento interno suave (Padding igual ao macOS Terminal / iTerm2)
+window-padding-x = 12
+window-padding-y = 10
+window-padding-balance = true
+
+# Cursor estilo barra piscante (Mac style)
+cursor-style = bar
+cursor-style-blink = true
+
+# Comportamento do Mouse e Janela
+mouse-hide-while-typing = true
+confirm-close-surface = false
+
+# Leve transparência para profundidade moderna
+background-opacity = 0.95
+unfocused-split-opacity = 0.85
+
+# Abas no topo
+gtk-tabs-location = top

@@ -1,0 +1,289 @@
+[
+    {
+        "name": "Hub de Ferramentas & Atalhos",
+        "cmd": "hub-ferramentas",
+        "shortcut": "Super + H",
+        "category": "Produtividade",
+        "tags": [
+            "hub",
+            "ajuda",
+            "atalhos",
+            "catalogo",
+            "comandos",
+            "pesquisa",
+            "ferramentas",
+            "guia"
+        ],
+        "desc": "Este catálogo visual de ferramentas do sistema com busca por utilidade, tags, atalhos e execução direta.",
+        "icon": "help-browser"
+    },
+    {
+        "name": "Quick Look",
+        "cmd": "quicklook",
+        "shortcut": "F3 (no Thunar)",
+        "category": "Arquivos",
+        "tags": [
+            "preview",
+            "codigo",
+            "imagem",
+            "pdf",
+            "mac",
+            "espaco",
+            "rapido"
+        ],
+        "desc": "Pré-visualização instantânea de código, textos, html, imagens e PDFs sem precisar abrir nenhum programa.",
+        "icon": "document-open-recent"
+    },
+    {
+        "name": "Este Computador",
+        "cmd": "meu-computador",
+        "shortcut": "Super + E",
+        "category": "Sistema",
+        "tags": [
+            "discos",
+            "armazenamento",
+            "nvme",
+            "pastas",
+            "recentes",
+            "windows",
+            "espaco"
+        ],
+        "desc": "Painel com visualização em colunas dos discos e barras de uso, pastas pessoais e arquivos recentes.",
+        "icon": "computer"
+    },
+    {
+        "name": "Launchpad",
+        "cmd": "launchpad",
+        "shortcut": "F4 ou Super + A",
+        "category": "Produtividade",
+        "tags": [
+            "menu",
+            "grade",
+            "apps",
+            "mac",
+            "tela-cheia",
+            "transparente"
+        ],
+        "desc": "Lançador de aplicativos em tela cheia semitransparente com grade de ícones estilo macOS.",
+        "icon": "view-app-grid"
+    },
+    {
+        "name": "Print & Traduzir",
+        "cmd": "flameshot-translate",
+        "shortcut": "Super + Shift + T",
+        "category": "Captura",
+        "tags": [
+            "print",
+            "screenshot",
+            "traduzir",
+            "google",
+            "ingles",
+            "ocr",
+            "imagem"
+        ],
+        "desc": "Captura uma área da tela com o Flameshot e envia a imagem diretamente ao Google Tradutor Imagens.",
+        "icon": "accessories-screenshot"
+    },
+    {
+        "name": "Histórico de Área de Transferência",
+        "cmd": "xfce4-popup-clipman",
+        "shortcut": "Super + V",
+        "category": "Produtividade",
+        "tags": [
+            "clipboard",
+            "copiar",
+            "colar",
+            "historico",
+            "windows",
+            "win+v"
+        ],
+        "desc": "Menu flutuante no cursor com os últimos 50 textos e 10 imagens copiadas, colando automaticamente.",
+        "icon": "edit-paste"
+    },
+    {
+        "name": "Busca Instantânea de Arquivos (Everything)",
+        "cmd": "fsearch",
+        "shortcut": "Ctrl + Alt + B",
+        "category": "Arquivos",
+        "tags": [
+            "busca",
+            "everything",
+            "fsearch",
+            "encontrar",
+            "instantaneo",
+            "pesquisa"
+        ],
+        "desc": "Busca ultrarrápida indexada em microssegundos em todo o seu disco Home e NVMe.",
+        "icon": "system-search"
+    },
+    {
+        "name": "Ulauncher (Spotlight / Raycast)",
+        "cmd": "ulauncher-toggle",
+        "shortcut": "Ctrl + Espaço",
+        "category": "Produtividade",
+        "tags": [
+            "spotlight",
+            "raycast",
+            "barra",
+            "pesquisa",
+            "atalho",
+            "calculadora"
+        ],
+        "desc": "Barra flutuante central para abrir programas, buscar arquivos, fazer cálculos e comandos.",
+        "icon": "preferences-system-search"
+    },
+    {
+        "name": "Terminal Ghostty",
+        "cmd": "ghostty",
+        "shortcut": "Super + T",
+        "category": "Desenvolvimento",
+        "tags": [
+            "terminal",
+            "gpu",
+            "cli",
+            "bash",
+            "tokyonight",
+            "dev",
+            "codigo"
+        ],
+        "desc": "Terminal moderno acelerado por GPU, tema escuro TokyoNight, margens suaves e fonte Hack.",
+        "icon": "com.mitchellh.ghostty"
+    },
+    {
+        "name": "Monitor do Sistema Avançado",
+        "cmd": "plasma-systemmonitor",
+        "shortcut": "Ctrl + Shift + Esc",
+        "category": "Sistema",
+        "tags": [
+            "tarefas",
+            "cpu",
+            "ram",
+            "gpu",
+            "nvidia",
+            "rede",
+            "upload",
+            "download",
+            "processos"
+        ],
+        "desc": "Gerenciador de tarefas completo com gráficos da GPU NVIDIA GTX 1650, CPU, RAM e tráfego de rede por app.",
+        "icon": "utilities-system-monitor"
+    },
+    {
+        "name": "Mission Control / Visão de Tarefas",
+        "cmd": "toggle-taskview",
+        "shortcut": "Super + Tab",
+        "category": "Janelas",
+        "tags": [
+            "janelas",
+            "tarefas",
+            "workspaces",
+            "areas",
+            "miniaturas",
+            "expose",
+            "mac",
+            "windows"
+        ],
+        "desc": "Visão geral imersiva com espalhamento de janelas e miniaturas ao vivo de todas as áreas de trabalho.",
+        "icon": "xfdashboard"
+    },
+    {
+        "name": "fd (Localizador CLI Ultrarrápido)",
+        "cmd": "ghostty -e fd --help",
+        "shortcut": "Terminal: fd <nome>",
+        "category": "Desenvolvimento",
+        "tags": [
+            "busca",
+            "find",
+            "cli",
+            "rust",
+            "rapido",
+            "terminal",
+            "arquivos"
+        ],
+        "desc": "Substituto moderno e 10x mais veloz do comando find escrito em Rust, ignora lixo automaticamente.",
+        "icon": "utilities-terminal"
+    },
+    {
+        "name": "LocalSend (Estilo AirDrop)",
+        "cmd": "localsend",
+        "shortcut": "Menu / LocalSend",
+        "category": "Rede",
+        "tags": [
+            "airdrop",
+            "enviar",
+            "receber",
+            "celular",
+            "compartilhar",
+            "rede",
+            "p2p"
+        ],
+        "desc": "Compartilhamento direto de arquivos entre PC e celular pela rede Wi-Fi local sem internet.",
+        "icon": "network-workgroup"
+    },
+    {
+        "name": "Flameshot (Captura de Tela Completa)",
+        "cmd": "flameshot gui",
+        "shortcut": "Ctrl + Shift + S",
+        "category": "Captura",
+        "tags": [
+            "print",
+            "screenshot",
+            "setas",
+            "desenhar",
+            "anotar",
+            "blur",
+            "captura"
+        ],
+        "desc": "Ferramenta avançada de print da tela com setas, caixas, borrão de dados sensíveis e desenhos.",
+        "icon": "flameshot"
+    },
+    {
+        "name": "DBeaver",
+        "cmd": "dbeaver-ce",
+        "shortcut": "Menu / DBeaver",
+        "category": "Desenvolvimento",
+        "tags": [
+            "banco",
+            "dados",
+            "sql",
+            "postgres",
+            "mysql",
+            "sqlite",
+            "dev"
+        ],
+        "desc": "Cliente universal para gerenciamento de bancos de dados relacionais e NoSQL.",
+        "icon": "dbeaver"
+    },
+    {
+        "name": "Bottles",
+        "cmd": "flatpak run com.usebottles.bottles",
+        "shortcut": "Menu / Bottles",
+        "category": "Sistema",
+        "tags": [
+            "wine",
+            "windows",
+            "jogos",
+            "programas",
+            "exe",
+            "compatibilidade"
+        ],
+        "desc": "Gerenciador moderno de ambientes Wine e Proton para rodar programas e jogos do Windows no Linux.",
+        "icon": "com.usebottles.bottles"
+    },
+    {
+        "name": "Remmina (Desktop Remoto)",
+        "cmd": "remmina",
+        "shortcut": "Menu / Remmina",
+        "category": "Rede",
+        "tags": [
+            "rdp",
+            "vnc",
+            "ssh",
+            "remoto",
+            "acesso",
+            "servidor"
+        ],
+        "desc": "Cliente de acesso remoto para conectar a outros computadores via RDP, VNC e SSH.",
+        "icon": "org.remmina.Remmina"
+    }
+]

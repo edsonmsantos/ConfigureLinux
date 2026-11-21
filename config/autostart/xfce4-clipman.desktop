@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Clipman
+Comment=Gerenciador de Área de Transferência
+Exec=xfce4-clipman
+Icon=xfce4-clipman-plugin
+Terminal=false
+StartupNotify=false
+Hidden=false

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+<action>
+	<icon>utilities-terminal</icon>
+	<name>Open Terminal Here</name>
+	<submenu></submenu>
+	<unique-id>1791595079541374-1</unique-id>
+	<command>exo-open --working-directory %f --launch TerminalEmulator</command>
+	<description>Abrir terminal nesta pasta</description>
+	<range></range>
+	<patterns>*</patterns>
+	<startup-notify/>
+	<directories/>
+</action>
+<action>
+	<icon>document-open-recent</icon>
+	<name>Visualização Rápida (Quick Look)</name>
+	<submenu></submenu>
+	<unique-id>quicklook-action-2</unique-id>
+	<command>/home/edson/.local/bin/quicklook %f</command>
+	<description>Pré-visualização instantânea estilo Mac</description>
+	<range></range>
+	<patterns>*</patterns>
+	<directories/>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+</action>
+</actions>

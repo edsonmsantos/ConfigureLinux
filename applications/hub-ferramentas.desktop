@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Hub de Ferramentas
+Comment=Catálogo pesquisável de ferramentas, atalhos e utilitários do sistema
+Exec=/home/edson/.local/bin/hub-ferramentas
+Icon=help-browser
+Terminal=false
+Categories=Utility;System;Settings;
+StartupNotify=true

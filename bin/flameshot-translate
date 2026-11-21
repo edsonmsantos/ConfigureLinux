@@ -1,0 +1,23 @@
+#!/bin/bash
+TARGET="$1"
+
+# Se chamado diretamente sem arquivo (via atalho de teclado)
+if [ -z "$TARGET" ]; then
+    TMP_IMG="/tmp/flameshot_translate.png"
+    rm -f "$TMP_IMG"
+    
+    # Capturar área da tela com o flameshot
+    flameshot gui -r > "$TMP_IMG"
+    
+    # Se o usuário cancelou (Esc) ou arquivo estiver vazio, encerra
+    if [ ! -s "$TMP_IMG" ]; then
+        exit 0
+    fi
+    TARGET="$TMP_IMG"
+fi
+
+# Copiar a imagem para o clipboard como image/png para colar no Google Tradutor
+xclip -selection clipboard -t image/png -i "$TARGET"
+
+# Abrir a página do Google Tradutor Imagens no Chrome
+xdg-open "https://translate.google.com.br/?sl=en&tl=pt&op=images"
